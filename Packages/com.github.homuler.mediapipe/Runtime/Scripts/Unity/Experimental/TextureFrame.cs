@@ -85,10 +85,11 @@ namespace Mediapipe.Unity.Experimental
         var name = (uint)_nativeTexturePtr;
         lock (((ICollection)_NameTable).SyncRoot)
         {
-          var _ = _NameTable.Remove(name);
+          _ = _NameTable.Remove(name);
         }
       }
       _glSyncToken?.Dispose();
+      _ = _InstanceTable.Remove(_instanceId);
     }
 
     public void CopyTexture(Texture dst) => Graphics.CopyTexture(_texture, dst);
@@ -123,27 +124,35 @@ namespace Mediapipe.Unity.Experimental
         throw new InvalidOperationException("Failed to read texture on GPU");
       }
 
-      return AsyncGPUReadback.Request(_texture, 0);
+      return AsyncGPUReadback.Request(_texture, 0, (req) =>
+      {
+        if (_texture == null)
+        {
+          return;
+        }
+        _texture.LoadRawTextureData(req.GetData<byte>());
+        _texture.Apply();
+      });
     }
 
-    public AsyncGPUReadbackRequest ReadTextureAsync(Texture src, bool flipVertically, bool flipHorizontally)
+    public AsyncGPUReadbackRequest ReadTextureAsync(Texture src, bool flipHorizontally, bool flipVertically)
     {
-      // TODO: determine the format at runtime
-      var tmpRenderTexture = RenderTexture.GetTemporary(src.width, src.height, 32, GraphicsFormat.R8G8B8A8_UNorm);
+      var graphicsFormat = GraphicsFormatUtility.GetGraphicsFormat(format, true);
+      var tmpRenderTexture = RenderTexture.GetTemporary(src.width, src.height, 32, graphicsFormat);
       var currentRenderTexture = RenderTexture.active;
       RenderTexture.active = tmpRenderTexture;
 
       var scale = new Vector2(1.0f, 1.0f);
       var offset = new Vector2(0.0f, 0.0f);
-      if (flipVertically)
-      {
-        scale.y = -1.0f;
-        offset.y = 1.0f;
-      }
       if (flipHorizontally)
       {
         scale.x = -1.0f;
         offset.x = 1.0f;
+      }
+      if (flipVertically)
+      {
+        scale.y = -1.0f;
+        offset.y = 1.0f;
       }
       Graphics.Blit(src, tmpRenderTexture, scale, offset);
 
@@ -151,6 +160,10 @@ namespace Mediapipe.Unity.Experimental
 
       return AsyncGPUReadback.Request(tmpRenderTexture, 0, (req) =>
       {
+        if (_texture == null)
+        {
+          return;
+        }
         _texture.LoadRawTextureData(req.GetData<byte>());
         _texture.Apply();
         _ = RevokeNativeTexturePtr();
@@ -201,6 +214,8 @@ namespace Mediapipe.Unity.Experimental
     public Guid GetInstanceID() => _instanceId;
 
     public ImageFrame BuildImageFrame() => new ImageFrame(imageFormat, width, height, 4 * width, GetRawTextureData<byte>());
+
+    public Image BuildCPUImage() => new Image(imageFormat, width, height, 4 * width, GetRawTextureData<byte>());
 
     public GpuBuffer BuildGpuBuffer(GlContext glContext)
     {

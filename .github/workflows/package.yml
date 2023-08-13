@@ -147,7 +147,7 @@ jobs:
           git clone https://github.com/bazelbuild/bazel.git --depth 1 --single-branch --branch  6.1.1
           cd bazel
           git apply ../third_party/bazel_ios_workaround.diff
-          bazel build --java_runtime_version=remotejdk_11 //src:bazel
+          USE_BAZEL_VERSION=6.2.1 bazel build --java_runtime_version=remotejdk_11 //src:bazel
           cp bazel-bin/src/bazel ../bin
           cd ..
           echo "bin" >> $GITHUB_PATH
@@ -212,7 +212,7 @@ jobs:
       - name: Install UnityEditor
         if: ${{ env.BUILD_UNITYPACKAGE == '1' }}
         run: |
-          sudo docker cp $(docker create --rm unityci/editor:2021.3.18f1-base-1):/opt/unity /opt/unity
+          sudo docker cp $(docker create --rm unityci/editor:2022.3.6f1-base-1):/opt/unity /opt/unity
           sudo chown -R $(id -u):$(id -g) /opt/unity
 
           echo -e '#!/bin/bash\nxvfb-run -ae /dev/stdout /opt/unity/Editor/Unity -batchmode "$@"' | sudo tee -a /usr/bin/unity-editor
@@ -234,7 +234,7 @@ jobs:
           npm install
           cd ..
           npm install -g ./unity-license-activate
-          unity-license-activate "$UNITY_EMAIL" "$UNITY_PASSWORD" Unity_v2021.3.18f1.alf --authenticator-key "$UNITY_TOTP_KEY"
+          unity-license-activate "$UNITY_EMAIL" "$UNITY_PASSWORD" Unity_v2022.3.6f1.alf --authenticator-key "$UNITY_TOTP_KEY"
           rm -rf unity-license-activate
       - name: Activate License
         if: ${{ env.BUILD_UNITYPACKAGE == '1' }}

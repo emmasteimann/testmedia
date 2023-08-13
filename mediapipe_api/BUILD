@@ -164,7 +164,7 @@ cc_library(
         "//mediapipe_api/framework/formats:matrix_data",
         "//mediapipe_api/framework/formats:rect",
         "//mediapipe_api/framework/port:logging",
-        "//mediapipe_api/modules/face_geometry/protos:face_geometry",
+        "//mediapipe_api/tasks/cc/vision/face_geometry/proto:face_geometry",
         "//mediapipe_api/tasks/cc/core:task_runner",
         "//mediapipe_api/util:resource_util",
     ] + select({
@@ -326,7 +326,9 @@ cc_library(
 
 cc_library(
     name = "face_mesh_calculators",
-    deps = select({
+    deps = [
+        "@com_google_mediapipe//mediapipe/tasks/cc/vision/face_landmarker:face_landmarker",
+    ] + select({
         "@com_google_mediapipe//mediapipe/gpu:disable_gpu": [
             "@com_google_mediapipe//mediapipe/graphs/face_mesh:desktop_live_calculators",
         ],
@@ -432,6 +434,8 @@ pkg_zip(
 
 mediapipe_files(srcs = [
     "blaze_face_short_range.tflite",
+    "face_landmarker_v2.task",
+    "face_landmarker_v2_with_blendshapes.task",
 ])
 
 pkg_asset(
@@ -483,6 +487,8 @@ filegroup(
 filegroup(
     name = "face_mesh_assets",
     srcs = [
+        ":face_landmarker_v2.task",
+        ":face_landmarker_v2_with_blendshapes.task",
         "@com_google_mediapipe//mediapipe/modules/face_detection:face_detection_short_range.tflite",
         "@com_google_mediapipe//mediapipe/modules/face_landmark:face_landmark.tflite",
         "@com_google_mediapipe//mediapipe/modules/face_landmark:face_landmark_with_attention.tflite",
@@ -562,11 +568,13 @@ pkg_zip(
         "//mediapipe_api/framework/formats/object_detection:proto_srcs",
         "//mediapipe_api/gpu:proto_srcs",
         "//mediapipe_api/modules/face_detection:proto_srcs",
-        "//mediapipe_api/modules/face_geometry:proto_srcs",
-        "//mediapipe_api/modules/face_geometry/protos:proto_srcs",
         "//mediapipe_api/modules/holistic_landmark/calculators:proto_srcs",
         "//mediapipe_api/tasks/cc/core/proto:proto_srcs",
+        "//mediapipe_api/tasks/cc/components/containers/proto:proto_srcs",
         "//mediapipe_api/tasks/cc/vision/face_detector/proto:proto_srcs",
+        "//mediapipe_api/tasks/cc/vision/face_landmarker/proto:proto_srcs",
+        "//mediapipe_api/tasks/cc/vision/face_geometry/proto:proto_srcs",
+        "//mediapipe_api/tasks/cc/vision/face_geometry/calculators:proto_srcs",
         "//mediapipe_api/util:proto_srcs",
         "//mediapipe_api/util/tracking:proto_srcs",
     ],

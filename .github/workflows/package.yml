@@ -292,34 +292,3 @@ jobs:
             *.unitypackage
             MediaPipeUnityPlugin-all.zip
           retention-days: 7
-
-  clean:
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs:
-      - package
-    steps:
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ inputs.packageName }}-base
-          failOnError: false
-
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ inputs.packageName }}-mediapipe_android.aar
-          failOnError: false
-
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ inputs.packageName }}-libmediapipe_c.dylib
-          failOnError: false
-
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ inputs.packageName }}-MediaPipeUnity.framework
-          failOnError: false
-
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: ${{ inputs.packageName }}-mediapipe_c.dll
-          failOnError: false
